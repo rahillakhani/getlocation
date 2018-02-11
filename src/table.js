@@ -1,15 +1,12 @@
 import React, { Component } from 'react';
 
 class App extends Component {
+
 	render() {
 		console.log(this.props.data);
+		var cells;
 		return <table>
 			<thead>
-				{/* elemArr.push(elem.registration_no);
-      elemArr.push(elem.device_id);
-      elemArr.push(elem.mobile_no);
-      elemArr.push(elem.longitude);
-      elemArr.push(elem.timeout_interval); */}
 				<tr>
 					<th>reg name</th>
 					<th>ID</th>
@@ -23,9 +20,11 @@ class App extends Component {
 			<tbody>{
 				this.props.data.map((elem, index) => {
 					return <tr key={'row'+index}>
-						{elem.map(el => {
-						return <td key={index++}>{el}</td>
-					})}
+						{
+						elem.map(el => {
+							return <td key={index++}>{el}</td>
+						})
+					}
 					</tr>
 				})
 			}
