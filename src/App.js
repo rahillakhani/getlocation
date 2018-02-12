@@ -52,7 +52,8 @@ class App extends Component {
       elemArr.push(elem.longitude);
       elemArr.push(elem.latitude);
       elemArr.push(elem.timeout_interval);
-      elemArr.push('ETA');
+      console.log("elem===", elem)
+      elemArr.push(elem.eta);
       return elemArr;
     });
   }
