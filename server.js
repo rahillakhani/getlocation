@@ -1,54 +1,41 @@
-var axios = require('axios');
-var express = require('express');
-var querystring = require("querystring");
-var app = express();
-var url ;
-var port = process.env.PORT || 8989;
-var logger = require('logger').createLogger('development.log'); // logs to a file
+const axios = require('axios');
+const job = require('./job')
+const express = require('express');
+const app = express();
+let url ;
+const port = process.env.PORT || 8989;
+let logger = require('logger').createLogger('development.log'); // logs to a file
 logger.format = function(level, date, message) {
   return date.getTime().toString() + "; " + message;
 };
 
-let encodedString = querystring.stringify({destinations: 'Mazgaon, Anjeerwadi Road, Rambhau Bhogle Marg, Mustafa Bazar, Mazgaon, Mumbai, Maharashtra 400010'})
+let mongoWrapper = require('./mongo')
 
 app.use(express.static('build'));
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next()
+})
 
 app.get('/', (req,res) => {
 	re.send('index.html');
 });
 
 
-app.get('/tracker', (req,res) => {
+app.get('/tracker', async (req,res) => {
   console.log("received reques")
-	res.header("Access-Control-Allow-Origin", "*");
-	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-	axios.get('https://tms.adititracking.com/tracking_data.php?action=json&user_name=sahil@gmail.com&hash_key=HEPDCJAUTJ')
-	  .then(function (response) {
-      const vehicles = response.data.data.vehicles
-      
-      const promises = vehicles.map(function(vehicle){
-        return new Promise(function(resolve, reject){
-          axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${vehicle.latitude},${vehicle.longitude}&${encodedString}&key=AIzaSyBfVvEY-tpaxhLBcQqslPDQrr5hWrvp2P4`)
-            .then(function(googleResponse) {
-              vehicle.eta = googleResponse.data.rows[0].elements[0].duration ? googleResponse.data.rows[0].elements[0].duration.text : 'ETA'
-              resolve(vehicle)
-            })
-            .catch(function(error) {
-              vehicle.eta = 'ETA'
-              resolve(vehicle)
-            })
-         }) 
-      })
-
-      Promise.all(promises).then(function(vehicles) {
-        res.send(vehicles);
-      })
-      
-		})
-		.catch(function (error) {
-			console.log(error);
-		});
+  const vehicleCollection = await mongoWrapper.getVehicleCollection()
+  vehicleCollection.find({}).toArray(function(err, docs) {
+    //  console.log("response from mongo==", err, docs)
+     if (err) {
+        res.send({success: false})
+     } else {
+        res.send(docs)
+     }  
+  })
+	
 });
 
 
