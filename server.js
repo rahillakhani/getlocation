@@ -10,6 +10,7 @@ logger.format = function(level, date, message) {
 };
 
 let mongoWrapper = require('./mongo')
+const authenticationModule = require('./authentication')
 
 app.use(express.static('build'));
 
@@ -20,9 +21,17 @@ app.use(function(req, res, next) {
 })
 
 app.get('/', (req,res) => {
-	re.send('index.html');
+	res.send('index.html');
 });
 
+app.use(async function(req, res, next) {
+  try {
+    await authenticationModule(req.headers.username, req.headers.password)
+    next()
+  } catch (err) {
+    res.send({ success: false, message: "Invalid credentials" })
+  }
+})
 
 app.get('/tracker', async (req,res) => {
   console.log("received reques")
